@@ -59,6 +59,7 @@ func (d *FakeStorageDriver) CreateClone(name, source, snapshot, newSnapshotPrefi
 }
 
 func (d *FakeStorageDriver) Destroy(name string) error {
+	log.Debugf("FakeStorageDriver.Destroy()- \n\tname: %v", name)
   //TODO: Add logic once theres a need
   return nil
 }
