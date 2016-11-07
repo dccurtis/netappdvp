@@ -65,24 +65,29 @@ func (d *FakeStorageDriver) Destroy(name string) error {
 }
 
 func (d *FakeStorageDriver) Attach(name, mountpoint string, opts map[string]string) error {
+	log.Debugf("FakeStorageDriver.Attach()- name: %v, mountpoint: %v, opts: %v", name, mountpoint, opts)
   //TODO: Add logic once theres a need
   return nil
 }
 
 func (d *FakeStorageDriver) Detach(name, mountpoint string) error {
+	log.Debugf("FakeStorageDriver.Detach()- name: %v, mountpoint: %v", name, mountpoint)
   //TODO: Add logic once theres a need
   return nil
 }
 
 func (d *FakeStorageDriver) DefaultStoragePrefix() string {
+	log.Debugf("FakeStorageDriver.DefaultStoragePrefix()")
 	return "fake_"
 }
 
 func (d *FakeStorageDriver) DefaultSnapshotPrefix() string {
+	log.Debugf("FakeStorageDriver.DefaultSnapshotPrefix()")
 	return "fake_"
 }
 
 func (d *FakeStorageDriver) SnapshotList(name string) ([]storage_drivers.CommonSnapshot, error) {
+	log.Debugf("FakeStorageDriver.SnapshotList()- name: %v", name)
   var snapshots []storage_drivers.CommonSnapshot
   //TODO: Add necessary stuff here
   return snapshots, nil

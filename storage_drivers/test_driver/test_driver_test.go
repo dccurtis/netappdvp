@@ -109,3 +109,12 @@ func TestSnapshotList(t *testing.T) {
     t.Errorf("Fake Snapshot List failed")
   }
 }
+
+func TestName(t *testing.T) {
+  d := FakeStorageDriver{}
+
+  returned_name := d.Name()
+  if returned_name != "fake" {
+    t.Errorf("FakeStorageDriver Name() = %s, expected: %s", returned_name, "fake")
+  }
+}

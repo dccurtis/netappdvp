@@ -16,7 +16,7 @@ func TestMain(m *testing.M) {
 
 	log.SetFormatter(&log.TextFormatter{})
 	log.SetOutput(os.Stdout)
-	log.SetLevel(log.DebugLevel)
+	log.SetLevel(log.InfoLevel)
 
 	os.Exit(m.Run())
 }

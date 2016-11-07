@@ -4,9 +4,12 @@ import (
   "os"
   "testing"
   "github.com/docker/go-plugins-helpers/volume"
+  log "github.com/Sirupsen/logrus"
 )
 
 func TestCreate(t *testing.T) {
+  log.Infof("Docker Volume Interface Create(): Starting")
+
   request := volume.Request{
     Name: "myvolume",
     Options: map[string]string{"from": "myvol", "fromSnapshot": "mysnap"},
@@ -17,11 +20,15 @@ func TestCreate(t *testing.T) {
   response := d.Create(request)
 
   if response.Err != "" {
+    log.Infof("Docker Volume Interface Create(): Failed")
     t.Errorf("response: Mountpoint %v, Err: %s", response.Mountpoint, response.Err)
   }
+  log.Infof("Docker Volume Interface Create(): Passed")
 }
 
 func TestList(t *testing.T) {
+  log.Infof("Docker Volume Interface List(): Starting")
+
   d := newNdvpDriverWithPrefix(``, "")
   defer os.RemoveAll("/tmp/volume")
 
@@ -33,6 +40,7 @@ func TestList(t *testing.T) {
 
   vol_create_response := d.Create(volume_request)
   if vol_create_response.Err != "" {
+    log.Infof("Docker Volume Interface List(): Failed")
     t.Errorf("Unexpected volume create error, Err: %s", vol_create_response.Err)
   }
 
@@ -43,15 +51,20 @@ func TestList(t *testing.T) {
 
   list_response := d.List(list_request)
   if list_response.Err != "" {
+    log.Infof("Docker Volume Interface List(): Failed")
     t.Errorf("response: Mountpoint %v, Err: %s", list_response.Mountpoint, list_response.Err)
   }
 
   if list_response.Volumes[0].Name != "testvolume" {
+    log.Infof("Docker Volume Interface List(): Failed")
     t.Errorf("List(%v) = %v, expected: %v", list_request, list_response.Volumes[0], "requested_name")
   }
+  log.Infof("Docker Volume Interface List(): Passed")
 }
 
 func TestGet(t *testing.T) {
+  log.Infof("Docker Volume Interface Get(): Starting")
+
   d := newNdvpDriverWithPrefix(``, "")
   defer os.RemoveAll("/tmp/volume")
 
@@ -63,21 +76,28 @@ func TestGet(t *testing.T) {
 
   vol_create_response := d.Create(volume_request)
   if vol_create_response.Err != "" {
+    log.Infof("Docker Volume Interface Get(): Failed")
     t.Errorf("Unexpected volume create error, Err: %s", vol_create_response.Err)
   }
 
   vol_get_response := d.Get(volume_request)
 
   if vol_get_response.Volume.Name != "testvolume" {
+    log.Infof("Docker Volume Interface Get(): Failed")
     t.Errorf("volume_get_response Name: %s, expected: %s", vol_get_response.Volume.Name, "testvolume")
   }
 
   if vol_get_response.Volume.Mountpoint != "/tmp/volume/fake_testvolume" {
+    log.Infof("Docker Volume Interface Get(): Failed")
     t.Errorf("volume_get_response Mountpoint: %s, expected: %s", vol_get_response.Volume.Mountpoint, "/tmp/volume/fake_testvolume")
   }
+  log.Infof("Docker Volume Interface Get(): Passed")
+
 }
 
 func TestRemove(t *testing.T) {
+  log.Infof("Docker Volume Interface Remove(): Starting")
+
   d := newNdvpDriverWithPrefix(``, "")
   defer os.RemoveAll("/tmp/volume")
 
@@ -98,11 +118,15 @@ func TestRemove(t *testing.T) {
 
   vol_remove_response := d.Remove(volume_remove_request)
   if vol_remove_response.Err != "" {
+    log.Infof("Docker Volume Interface Remove(): Failed")
     t.Errorf("vol_remove_response: Err: %s", vol_remove_response.Err)
   }
+  log.Infof("Docker Volume Interface Remove(): Passed")
 }
 
 func TestPath(t *testing.T) {
+  log.Infof("Docker Volume Interface Path(): Starting")
+
   d := newNdvpDriverWithPrefix(``, "")
   defer os.RemoveAll("/tmp/volume")
 
@@ -114,6 +138,7 @@ func TestPath(t *testing.T) {
 
   vol_create_response := d.Create(volume_request)
   if vol_create_response.Err != "" {
+    log.Infof("Docker Volume Interface Path(): Failed")
     t.Errorf("Unexpected volume create error, Err: %s", vol_create_response.Err)
   }
 
@@ -124,14 +149,20 @@ func TestPath(t *testing.T) {
   path_response := d.Path(path_request)
 
   if path_response.Err != "" {
+    log.Infof("Docker Volume Interface Path(): Failed")
     t.Errorf("Unexpected err: %s", path_response.Err)
   }
   if path_response.Mountpoint != "/tmp/volume/fake_testvolume" {
+    log.Infof("Docker Volume Interface Path(): Failed")
     t.Errorf("Unexpected volume path: got %s, expected: %s", path_response, "/tmp/volume/fake_testvolume")
   }
+  log.Infof("Docker Volume Interface Path(): Passed")
+
 }
 
 func TestMount(t *testing.T) {
+  log.Infof("Docker Volume Interface Mount(): Starting")
+
   d := newNdvpDriverWithPrefix(``, "")
   defer os.RemoveAll("/tmp/volume")
 
@@ -143,6 +174,7 @@ func TestMount(t *testing.T) {
 
   vol_create_response := d.Create(volume_request)
   if vol_create_response.Err != "" {
+    log.Infof("Docker Volume Interface Mount(): Failed")
     t.Errorf("Unexpected volume create error, Err: %s", vol_create_response.Err)
   }
 
@@ -153,15 +185,20 @@ func TestMount(t *testing.T) {
   mount_response := d.Mount(mount_request)
 
   if mount_response.Err != "" {
+    log.Infof("Docker Volume Interface Mount(): Failed")
     t.Errorf("Unexpected err: %s", mount_response.Err)
   }
 
   if mount_response.Mountpoint != "/tmp/volume/fake_testvolume" {
+    log.Infof("Docker Volume Interface Mount(): Failed")
     t.Errorf("Unexpected mount point: got %s, expected: %s", mount_response, "/tmp/volume/fake_testvolume")
   }
+  log.Infof("Docker Volume Interface Mount(): Passed")
 }
 
 func TestUnmount(t *testing.T) {
+  log.Infof("Docker Volume Interface Unmount(): Starting")
+
   d := newNdvpDriverWithPrefix(``, "")
   defer os.RemoveAll("/tmp/volume")
 
@@ -173,6 +210,7 @@ func TestUnmount(t *testing.T) {
 
   vol_create_response := d.Create(volume_request)
   if vol_create_response.Err != "" {
+    log.Infof("Docker Volume Interface Unmount(): Failed")
     t.Errorf("Unexpected volume create error, Err: %s", vol_create_response.Err)
   }
 
@@ -183,11 +221,16 @@ func TestUnmount(t *testing.T) {
   unmount_response := d.Unmount(unmount_request)
 
   if unmount_response.Err != "" {
+    log.Infof("Docker Volume Interface Unmount(): Failed")
     t.Errorf("Unexpected err: %s", unmount_response.Err)
   }
+  log.Infof("Docker Volume Interface Unmount(): Passed")
+
 }
 
 func TestCapabilities(t *testing.T) {
+  log.Infof("Docker Volume Interface Capabilities(): Starting")
+
   d := newNdvpDriverWithPrefix(``, "")
   defer os.RemoveAll("/tmp/volume")
 
@@ -197,6 +240,9 @@ func TestCapabilities(t *testing.T) {
   capability_response := d.Capabilities(capability_request)
 
   if capability_response.Capabilities.Scope != "global" {
+    log.Infof("Docker Volume Interface Capabilities(): Failed")
     t.Errorf("Capability got %s, expected: %s", capability_response.Capabilities.Scope, "global")
   }
+  log.Infof("Docker Volume Interface Capabilities(): Passed")
+
 }
