@@ -13,6 +13,7 @@ import (
 	"github.com/docker/go-plugins-helpers/volume"
 	"github.com/netapp/netappdvp/storage_drivers"
 	"github.com/netapp/netappdvp/utils"
+	"github.com/netapp/netappdvp/docker_driver"
 
 	log "github.com/Sirupsen/logrus"
 )
@@ -134,7 +135,7 @@ func main() {
 	}).Info("Starting docker volume plugin with the following options:")
 
 	// plugin connection registered in /var/run/docker/plugins
-	d, err := newNetAppDockerVolumePlugin(volumeDir, *commonConfig)
+	d, err := docker_driver.NewNetAppDockerVolumePlugin(volumeDir, *commonConfig, storageDriver)
 	if err != nil {
 		log.Error(err)
 		os.Exit(1)
