@@ -69,6 +69,9 @@ func initLogging(logName string) *os.File {
 	} else {
 		log.SetLevel(log.InfoLevel)
 	}
+
+	fmt.Printf("Logfile Location (Level: %s): %s\n", log.GetLevel().String(), logFileLocation)
+
 	return logFile
 }
 
