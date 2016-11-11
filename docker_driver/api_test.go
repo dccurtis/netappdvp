@@ -27,7 +27,7 @@ func createVolumeFromList(d *ndvpDriver, volumes []string) {
       if response.Err != "" {
         panic(0)
       }
-      }
+    }
 }
 
 func TestCreate(t *testing.T) {
@@ -236,7 +236,8 @@ func TestPath(t *testing.T) {
     expected_path := tempRoot + "/fake_" + c.request.Name
     if path_response.Mountpoint != expected_path {
       log.Infof("Docker Volume Interface Path(): Failed")
-      t.Errorf("Unexpected volume path: got %s, expected: %s", path_response.Mountpoint, expected_path)
+      t.Errorf("Unexpected volume path: got %s, expected: %s",
+        path_response.Mountpoint, expected_path)
     }
 
     cleanup()
@@ -273,7 +274,8 @@ func TestMount(t *testing.T) {
     expected_mount := tempRoot + "/fake_" + c.request.Name
     if mount_response.Mountpoint != expected_mount {
       log.Infof("Docker Volume Interface Mount(): Failed")
-      t.Errorf("Unexpected volume mount: got %s, expected: %s", mount_response.Mountpoint, expected_mount)
+      t.Errorf("Unexpected volume mount: got %s, expected: %s",
+        mount_response.Mountpoint, expected_mount)
     }
 
     cleanup()
