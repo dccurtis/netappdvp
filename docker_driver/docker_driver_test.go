@@ -11,9 +11,11 @@ import (
 
 )
 
-func newNdvpDriverWithPrefix(storage_prefix, snapshot_prefix string) (*ndvpDriver) {
-  volumeDir := "/tmp/volume"
+var (
+  tempRoot string = "/tmp/root"
+)
 
+func newNdvpDriverWithPrefix(storage_prefix, snapshot_prefix string) (*ndvpDriver) {
   commonConfig := &storage_drivers.CommonStorageDriverConfig {}
   commonConfig.Version = 1
   commonConfig.StorageDriverName = "fake"
@@ -23,7 +25,7 @@ func newNdvpDriverWithPrefix(storage_prefix, snapshot_prefix string) (*ndvpDrive
   commonConfig.SnapshotPrefixRaw = []byte(snapshot_prefix)
 
   fakeDriver := &test_driver.FakeStorageDriver{}
-  d, err := NewNetAppDockerVolumePlugin(volumeDir, *commonConfig, fakeDriver)
+  d, err := NewNetAppDockerVolumePlugin(tempRoot, *commonConfig, fakeDriver)
   if err != nil {
     panic(0)
   }
@@ -80,7 +82,6 @@ func TestVolumeNames(t *testing.T) {
 
 func TestSnapshotPrefix(t *testing.T) {
   log.Infof("docker_driver NetApp: snapshotPrefix(): Starting")
-  //TODO: Clean this up.  Probably need to update somethin to use the specified prefix
   snapshot_prefix_cases := []struct {
     prefix, expected_snapshot_prefix string
   } {
@@ -102,12 +103,20 @@ func TestSnapshotPrefix(t *testing.T) {
 
 func TestMountPoint(t *testing.T) {
   log.Infof("docker_driver NetApp: mountpoint(): Starting")
-  driver := newNdvpDriverWithPrefix("", "")
-  name := "abcd"
-  got := driver.mountpoint(name)
-  if got != ("/tmp/volume/" + name) {
-    log.Infof("docker_driver NetApp: mountpoint(): Failed")
-    t.Errorf("d.mountpoint(%v) == %v, expected %v", name, got, got)
+  mnt_path := tempRoot + "/"
+  mountpoint_cases := []struct {
+    name, expected_mountpoint string
+  } {
+    {"abcd", mnt_path + "abcd"},
+  }
+
+  for _, c := range mountpoint_cases {
+    driver := newNdvpDriverWithPrefix("", "")
+    got := driver.mountpoint(c.name)
+    if got != (mnt_path + c.name) {
+      log.Infof("docker_driver NetApp: mountpoint(): Failed")
+      t.Errorf("ndvpDriver.mountpoint(%v) = %v, expected %v", c.name, got, mnt_path + c.name)
+    }
   }
   log.Infof("docker_driver NetApp: mountpoint(): Passed")
 }
@@ -115,24 +124,23 @@ func TestMountPoint(t *testing.T) {
 func TestGetMountPoint(t *testing.T) {
   log.Infof("docker_driver NetApp: getMountPoint(): Starting")
 
-  volumeDir := "/tmp/volume"
-  os.MkdirAll(volumeDir, 0777)
-  defer os.RemoveAll(volumeDir)
+  os.MkdirAll(tempRoot, 0777)
+  defer os.RemoveAll(tempRoot)
 
   mount_point_cases := []struct {
     storage_prefix, mount_name, expected_prefix, expected_mount_point string
     expected_err error
   } {
-    {``, "mount1", "fake_", volumeDir + "/fake_mount1", nil},
-    {`"myprefix_"`, "mount1", "myprefix_", volumeDir + "/myprefix_mount1", nil},
-    {`""`, "mount1", "", volumeDir + "/mount1", nil},
-    {`"a"`, "mount1", "a", volumeDir + "/amount1", nil},
-    {`"ab"`, "mount1", "ab", volumeDir + "/abmount1", nil},
-    {`"abc"`, "mount1", "abc", volumeDir + "/abcmount1", nil},
+    {``, "mount1", "fake_", tempRoot + "/fake_mount1", nil},
+    {`"myprefix_"`, "mount1", "myprefix_", tempRoot + "/myprefix_mount1", nil},
+    {`""`, "mount1", "", tempRoot + "/mount1", nil},
+    {`"a"`, "mount1", "a", tempRoot + "/amount1", nil},
+    {`"ab"`, "mount1", "ab", tempRoot + "/abmount1", nil},
+    {`"abc"`, "mount1", "abc", tempRoot + "/abcmount1", nil},
   }
 
   for _, c := range mount_point_cases {
-    fpath := volumeDir + "/" + c.expected_prefix + c.mount_name
+    fpath := tempRoot + "/" + c.expected_prefix + c.mount_name
     f, err := os.Create(fpath)
     if err != nil {
       f.Close()
@@ -145,7 +153,8 @@ func TestGetMountPoint(t *testing.T) {
     got_mount_point, err := driver.getMountPoint(c.mount_name)
     if got_mount_point != c.expected_mount_point {
       log.Infof("docker_driver NetApp: getMountPoint(): Failed")
-      t.Errorf("ndvpDriver.getMountPoint(%v) == %q, expected %q (volumePrefix() = %q)", c.mount_name, got_mount_point, c.expected_mount_point, got_volume_prefix)
+      t.Errorf("ndvpDriver.getMountPoint(%v) == %q, expected %q (volumePrefix() = %q)",
+        c.mount_name, got_mount_point, c.expected_mount_point, got_volume_prefix)
     }
 
     if err != c.expected_err {
@@ -168,7 +177,8 @@ func TestGetMountPoint(t *testing.T) {
     got_mount_point, err := driver.getMountPoint(c.mount_name)
     if err == nil {
       log.Infof("docker_driver NetApp: getMountPoint(): Failed")
-      t.Errorf("Error was expected, got volume_prefix: %q, got mount_point: %q, err: %q", got_volume_prefix, got_mount_point, err)
+      t.Errorf("ndvpDriver.getMountPoint() Error was expected, got volume_prefix: %q, got mount_point: %q, err: %q",
+        got_volume_prefix, got_mount_point, err)
     }
   }
   log.Infof("docker_driver NetApp: getMountPoint(): Passed")
@@ -177,7 +187,7 @@ func TestGetMountPoint(t *testing.T) {
 func TestNewNetAppDockerVolumePlugin(t *testing.T) {
   log.Infof("docker_driver NetApp: NewNetAppDockerVolumePlugin(): Starting")
 
-    root := "/tmp/volume"
+    root := "/tmp/newroot"
     defer os.RemoveAll(root)
     commonConfig := &storage_drivers.CommonStorageDriverConfig {}
     commonConfig.Version = 1
@@ -192,7 +202,7 @@ func TestNewNetAppDockerVolumePlugin(t *testing.T) {
     d, err := NewNetAppDockerVolumePlugin(root, *commonConfig, fakeDriver)
     if err != nil {
       log.Infof("docker_driver NetApp: NewNetAppDockerVolumePlugin(): Failed")
-      t.Errorf("Problem with %v", d)
+      t.Errorf("NewNetAppDockerVolumePlugin (%v) creation failed, err: %s", d, err)
     }
     log.Infof("docker_driver NetApp: NewNetAppDockerVolumePlugin(): Passed")
 }
@@ -224,7 +234,6 @@ func TestNotADirectory(t *testing.T) {
   log.Infof("docker_driver NetApp: NewNetAppDockerVolumePlugin() Error Path: Not a directory: Starting")
 
   //Create a file where the root directory should be:
-  content := []byte("temporary file's content")
 	tmpfile, err := ioutil.TempFile("", "example")
 	if err != nil {
     log.Infof("docker_driver NetApp: NewNetAppDockerVolumePlugin() Error Path: Not a directory: Failed")
@@ -233,10 +242,6 @@ func TestNotADirectory(t *testing.T) {
 
 	defer os.Remove(tmpfile.Name()) // clean up
 
-	if _, err := tmpfile.Write(content); err != nil {
-    log.Infof("docker_driver NetApp: NewNetAppDockerVolumePlugin() Error Path: Not a directory: Failed")
-		t.Errorf("Error creating temp file: %v", err)
-	}
 	if err := tmpfile.Close(); err != nil {
     log.Infof("docker_driver NetApp: NewNetAppDockerVolumePlugin() Error Path: Not a directory: Failed")
     t.Errorf("Error closing temp file: %v", err)
